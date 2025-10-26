@@ -1,0 +1,9 @@
+{
+  "name": "m3-medai-followups",
+  "private": true,
+  "scripts": {
+    "dev:server": "pnpm -C services/server dev",
+    "dev:reviewer": "pnpm -C apps/reviewer dev -- --port 5173",
+    "dev:participant": "pnpm -C apps/participant dev -- --port 5174"
+  }
+}
