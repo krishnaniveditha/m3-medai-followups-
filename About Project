@@ -1,0 +1,12 @@
+This project was created as part of the M3 MedAI Senior Developer technical challenge.
+It’s a local-only monorepo using pnpm workspaces, containing:
+
+/apps/reviewer → React + TypeScript app that captures speech or text and sends normalized items to the backend.
+
+/apps/participant → React + TypeScript app that receives and speaks generated clarifying questions in real time.
+
+/services/server → Fastify + Socket.IO backend that calls OpenAI Chat Completions to turn the reviewer’s list into concise, polite follow-up questions.
+
+The apps communicate over WebSockets with strict TypeScript contracts shared via /packages/shared.
+
+Stack: React + TypeScript · Fastify · Socket.IO · OpenAI · pnpm · Vite
