@@ -1,0 +1,45 @@
+import Fastify from "fastify";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import dotenv from "dotenv";
+import OpenAI from "openai";
+import { FollowUpPayload, AgentQuestions } from "@shared";
+
+dotenv.config();
+const app = Fastify();
+const httpServer = createServer(app as any);
+const io = new Server(httpServer, { cors: { origin: "*" } });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const PORT = process.env.PORT || 3000;
+
+app.get("/health", async () => ({ ok: true }));
+
+io.on("connection", (socket) => {
+  console.log("Client connected:", socket.id);
+
+  socket.on("followup:create", async (payload: FollowUpPayload) => {
+    if (!payload.items?.length) return;
+    const totalChars = payload.items.join(",").length;
+    if (payload.items.length > 8 || totalChars > 300) return;
+
+    const prompt = `Turn these into 2–4 concise, polite clarifying questions: ${payload.items.join(", ")}`;
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "You are a polite, concise assistant." },
+        { role: "user", content: prompt }
+      ],
+      max_tokens: 150
+    });
+
+    const result: AgentQuestions = {
+      text: completion.choices[0]?.message?.content ?? "Sorry, could not generate questions.",
+      createdAt: Date.now()
+    };
+
+    io.emit("agent:questions", result);
+  });
+});
+
+httpServer.listen(PORT, () => console.log(`✅ Server running on port ${PORT}`));
